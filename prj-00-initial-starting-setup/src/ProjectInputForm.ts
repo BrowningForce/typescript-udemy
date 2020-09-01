@@ -3,7 +3,6 @@ import projectState from './ProjectState';
 
 import { validate } from './helpers';
 import { Validatable } from './interfaces';
-// import { Autobind } from './decorators';
 
 export default class ProjectInputForm extends Component<
   HTMLDivElement,
@@ -26,16 +25,15 @@ export default class ProjectInputForm extends Component<
       '#people'
     )! as HTMLInputElement;
 
-    this.configureForm();
+    this.configure();
   }
   
   renderContent() {}
   
-  configureForm() {
+  configure() {
     this.element.addEventListener('submit', this.handleSubmit);
   }
 
-  // @Autobind
   private handleSubmit = (e: Event) => {
     e.preventDefault();
 

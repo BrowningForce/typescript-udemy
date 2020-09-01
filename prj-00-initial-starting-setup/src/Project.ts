@@ -1,6 +1,6 @@
 import { ProjectStatus } from './enums';
 
-export default class Project {
+export default class Project{
   templateElement: HTMLTemplateElement;
   hostElement: HTMLUListElement;
   listItemElement: HTMLElement;

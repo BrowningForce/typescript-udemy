@@ -3,27 +3,19 @@ import Project from './Project';
 
 import { ProjectStatus } from './enums';
 import projectState from './ProjectState';
+import ProjectItem from './ProjectItem';
+import { DragTarget } from './interfaces';
 
-export default class ProjectList extends Component<
-  HTMLDivElement,
-  HTMLElement
-> {
+export default class ProjectList
+  extends Component<HTMLDivElement, HTMLElement>
+  implements DragTarget {
   assignedProjects: Project[];
 
   constructor(private type: 'active' | 'finished') {
     super('project-list', 'app', false, `${type}-projects`);
     this.assignedProjects = [];
-    projectState.addListener((projects: Project[]) => {
-      const relevantProjects = projects.filter((project) => {
-        if (this.type === 'active') {
-          return project.status === ProjectStatus.ACTIVE;
-        }
-        return project.status === ProjectStatus.FINISHED;
-      });
-      this.assignedProjects = relevantProjects;
-      this.renderProjects();
-    });
 
+    this.configure();
     this.renderContent();
   }
 
@@ -33,9 +25,7 @@ export default class ProjectList extends Component<
     )! as HTMLUListElement;
     listEl.innerHTML = '';
     this.assignedProjects.forEach((project) => {
-      const listItem = document.createElement('li');
-      listItem.textContent = project.title;
-      listEl.appendChild(listItem);
+      new ProjectItem(this.element.querySelector('ul')!.id, project);
     });
   }
 
@@ -47,5 +37,41 @@ export default class ProjectList extends Component<
       this.type.toUpperCase() + ' PROJECTS';
   }
 
-  configureForm = () => {};
+  configure = () => {
+    this.element.addEventListener('dragover', this.dragOverHandler);
+    this.element.addEventListener('dragleave', this.dragLeaveHandler);
+    this.element.addEventListener('drop', this.dropHandler);
+
+    projectState.addListener((projects: Project[]) => {
+      const relevantProjects = projects.filter((project) => {
+        if (this.type === 'active') {
+          return project.status === ProjectStatus.ACTIVE;
+        }
+        return project.status === ProjectStatus.FINISHED;
+      });
+      this.assignedProjects = relevantProjects;
+      this.renderProjects();
+    });
+  };
+
+  dragOverHandler = (event: DragEvent) => {
+    if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      event.preventDefault();
+      const listEl = this.element.querySelector('ul')!;
+      listEl.classList.add('droppable');
+    }
+  };
+
+  dropHandler = (event: DragEvent) => {
+    const projectId = event.dataTransfer!.getData('text/plain');
+    projectState.moveProject(
+      projectId,
+      this.type === 'active' ? ProjectStatus.ACTIVE : ProjectStatus.FINISHED
+    );
+  }
+
+  dragLeaveHandler = (_event: DragEvent) => {
+    const listEl = this.element.querySelector('ul')!;
+    listEl.classList.remove('droppable');
+  };
 }

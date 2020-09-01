@@ -36,6 +36,6 @@ export default abstract class Component<
     );
   }
 
-  abstract configureForm(): void;
+  abstract configure(): void;
   abstract renderContent(): void;
 }
